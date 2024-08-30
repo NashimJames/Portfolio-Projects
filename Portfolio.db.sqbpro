@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?><sqlb_project><db path="/Users/jamesnash/Portfolio.db" foreign_keys="1" case_sensitive_like="0" temp_store="0" wal_autocheckpoint="1000" synchronous="2"/><attached/><window><current_tab id="3"/></window><tab_structure><column_width id="0" width="300"/><column_width id="1" width="0"/><column_width id="2" width="100"/><column_width id="3" width="10775"/><column_width id="4" width="0"/><expanded_item id="0" parent="1"/><expanded_item id="1" parent="1"/><expanded_item id="2" parent="1"/><expanded_item id="3" parent="1"/></tab_structure><tab_browse><current_table name="PercentPopulationVaccinated"/><default_encoding codec=""/><browse_table_settings><table schema="main" name="CovidDeaths" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk=""><sort/><column_widths/><filter_values/><display_formats/><hidden_columns/><plot_y_axes/></table><table schema="main" name="PercentPopulationVaccinated" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk=""><sort/><column_widths/><filter_values/><display_formats/><hidden_columns/><plot_y_axes/></table><table schema="main" name="sql execute" show_row_id="0" encoding="" plot_x_axis="" unlock_view_pk=""><sort/><column_widths/><filter_values/><display_formats/><hidden_columns/><plot_y_axes/></table></browse_table_settings></tab_browse><tab_sql><sql name="SQL 1">--Select * from CovidDeaths
+--where continent is not null
+
+
+-- Looking at total cases vs total  deaths
+--Exploring the likelihood of dying if you get covid in your country
+
+--Select Location, date, total_cases,total_deaths, (cast(total_deaths as float)/cast(total_cases as float))*100 AS death_Percentage 
+--FROM CovidDeaths
+--ORDER BY 1, 2;
+
+--Select Location, date, total_cases,total_deaths, (cast(total_deaths as float)/cast(total_cases as float))*100 AS death_Percentage 
+--FROM CovidDeaths
+--where location like &quot;%states&quot;
+--ORDER BY 1, 2;
+
+--Select Location, date, total_cases,total_deaths, (cast(total_deaths as float)/cast(total_cases as float))*100 AS death_Percentage 
+--FROM CovidDeaths
+--where location like &quot;Canada&quot;
+--ORDER BY 1, 2;
+
+
+--Looking at the total cases vs the population
+--Shows percentage of Canadian Population that got infected with covid
+--Select Location, date, total_cases,population, (cast(total_cases as float)/cast(population as float))*100 AS &quot;Infection Rate&quot; 
+--FROM CovidDeaths
+--where location like &quot;Canada&quot;
+--ORDER BY 1, 2;
+
+--Looking at countries with highest infection rate compared to population
+
+--Select Location,  max(total_cases),population, max((cast(total_cases as float)/cast(population as float)))*100 AS &quot;Infection Rate&quot; 
+--FROM CovidDeaths
+--Group by location, Population
+--ORDER BY  &quot;infection rate&quot; desc;
+
+--Showing death counts per population
+
+--Select location, max(cast(total_deaths as float)) as &quot;Total Death Count&quot;
+--from CovidDeaths
+--where continent is not null
+--group by location
+--order by &quot;Total Death Count&quot; desc
+
+--Lets Look at the Total Death count  information on continents
+--Continents with the highest death count per population 
+--Select continent, max(cast(total_deaths as float)) as &quot;Total Death Count&quot;
+--from CovidDeaths
+--where continent is not NULL
+--group by continent
+--order by &quot;Total Death Count&quot; desc
+
+--Global numbers
+--Select  sum(new_cases), sum(cast(new_deaths as float)), sum(cast(new_deaths as float))/sum(new_cases)*100 as &quot;death_Percentage&quot;
+--from CovidDeaths
+--where continent is not null
+--Group by date
+--order by 1, 2
+
+--Looking at total population vs Vaccination
+
+--Select * from CovidDeaths as dea
+--join CovidVaccinations as vac
+--on dea. location=vac.location
+--and dea. date= vac.date
+
+--Select dea. continent, dea.location, dea.date, dea.population, vac.new_vaccinations
+--from CovidDeaths as dea
+--join CovidVaccinations as vac
+--on dea. location=vac.location
+--and dea. date= vac.date
+--where dea.continent is not null
+--order by  2, 3
+
+-- Vaccinations Per Day (Rolling count)
+
+--SELECT DEA.continent, DEA.location, DEA.date, DEA.population, VAC.new_vaccinations,
+    --SUM(VAC.new_vaccinations) OVER (PARTITION BY DEA.location ORDER BY DEA.date) AS VaccinationsPerDay
+--FROM CovidDeaths AS DEA
+--JOIN CovidVaccinations AS VAC
+    ---ON DEA.location = VAC.location
+    --AND DEA.date = VAC.date
+--WHERE DEA.continent IS NOT NULL
+--ORDER BY DEA.location, DEA.date;
+
+--Using CTE
+--WITH PopvsVac(Continent, Location, Date, Population, new_vaccinations, VaccinationsPerDay) AS
+--(
+    --SELECT 
+        --DEA.continent, 
+        --DEA.location, 
+        --DEA.date, 
+        --DEA.population,  
+        --VAC.new_vaccinations,
+        --SUM(VAC.new_vaccinations) OVER (PARTITION BY DEA.location ORDER BY DEA.date) AS VaccinationsPerDay
+    --FROM 
+        --CovidDeaths AS DEA
+    --JOIN 
+        --CovidVaccinations AS VAC
+    --ON 
+        --DEA.location = VAC.location
+    --AND 
+        --DEA.date = VAC.date
+    --WHERE 
+        --DEA.continent IS NOT NULL
+    --ORDER BY DEA.location, DEA.date;
+--)
+--SELECT 
+    --*, 
+    --(CAST(VaccinationsPerDay AS float) / CAST(Population AS float)) * 100 AS VaccinationRate
+--FROM 
+    --PopvsVac;
+
+	--Temp TABLE
+--Drop table if exists
+--CREATE TABLE #PercentPopulationVaccinated
+--(
+    --Continent nvarchar(255),
+    --Location nvarchar(255),
+    --Date datetime,
+    --Population numeric,
+    --new_vaccinations numeric,
+    --VaccinationsPerDay numeric, -- Add this to hold the running sum
+    --VaccinationRate numeric
+--);
+
+-- Insert data into the table
+--INSERT INTO #PercentPopulationVaccinated
+--SELECT 
+    --DEA.continent, 
+    --DEA.location, 
+    --DEA.date, 
+    --DEA.population,  
+    --VAC.new_vaccinations,
+    --SUM(VAC.new_vaccinations) OVER (PARTITION BY DEA.location ORDER BY DEA.date) AS VaccinationsPerDay,
+    --NULL -- Placeholder for VaccinationRate
+--FROM 
+    --CovidDeaths AS DEA
+--JOIN 
+    --CovidVaccinations AS VAC
+--ON 
+    --DEA.location = VAC.location
+--AND 
+    --DEA.date = VAC.date
+--WHERE 
+    --DEA.continent IS NOT NULL;
+
+-- Update the table with the VaccinationRate calculation
+--UPDATE #PercentPopulationVaccinated
+--SET VaccinationRate = (CAST(VaccinationsPerDay AS float) / CAST(Population AS float)) * 100;
+
+-- Select the data from the table
+--SELECT * 
+--FROM #PercentPopulationVaccinated;
+
+--Creating view to store for data visualization
+--Create View PercentPopulationVaccinated as 
+
+
+	CREATE VIEW PercentPopulationVaccinated AS
+SELECT 
+    DEA.continent, 
+    DEA.location, 
+    DEA.date, 
+    DEA.population,  
+    VAC.new_vaccinations,
+    SUM(cast(VAC.new_vaccinations as float)) OVER (PARTITION BY DEA.location ORDER BY DEA.date) AS CumulativeVaccinations,
+    (SUM(VAC.new_vaccinations) OVER (PARTITION BY DEA.location ORDER BY DEA.date) * 100.0 / DEA.population) AS VaccinationRate
+FROM 
+    CovidDeaths AS DEA
+JOIN 
+    CovidVaccinations AS VAC
+ON 
+    DEA.location = VAC.location
+AND 
+    DEA.date = VAC.date
+WHERE 
+    DEA.continent IS NOT NULL;
+	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</sql><current_tab id="0"/></tab_sql></sqlb_project>
